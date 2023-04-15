@@ -4,6 +4,7 @@
 # To view a copy of this license, check out LICENSE.md
 import datetime
 import os
+import logging
 
 from imaginaire.utils.distributed import master_only
 from imaginaire.utils.distributed import master_only_print as print
@@ -31,11 +32,18 @@ def init_logging(config_path, logdir):
     root_dir = 'logs'
     date_uid = get_date_uid()
     # example: logs/2019_0125_1047_58_spade_cocostuff
-    log_file = '_'.join([date_uid, os.path.splitext(config_file)[0]])
+    log_folder_name = '_'.join([date_uid, os.path.splitext(config_file)[0]])
+    os.makedirs(root_dir, exist_ok=True)
+    log_folder = os.path.join(root_dir, log_folder_name)
+    os.makedirs(log_folder, exist_ok=True)
+    log_file = os.path.join(root_dir, log_folder_name, 'log.log')
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
+    fh = logging.FileHandler(log_file, mode='w')
+    fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+    logging.getLogger().addHandler(fh)
     if logdir is None:
-        logdir = os.path.join(root_dir, log_file)
+        logdir = os.path.join(root_dir, log_folder_name)
     return date_uid, logdir
-
 
 @master_only
 def make_logging_dir(logdir):
@@ -48,4 +56,6 @@ def make_logging_dir(logdir):
     os.makedirs(logdir, exist_ok=True)
     tensorboard_dir = os.path.join(logdir, 'tensorboard')
     os.makedirs(tensorboard_dir, exist_ok=True)
-    set_summary_writer(tensorboard_dir)
+    cp_dir = os.path.join(logdir, 'checkpoints')
+    os.makedirs(cp_dir, exist_ok=True)
+    # set_summary_writer(tensorboard_dir)

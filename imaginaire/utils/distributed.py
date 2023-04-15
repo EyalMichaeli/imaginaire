@@ -10,13 +10,19 @@ import torch.distributed as dist
 
 
 def init_dist(local_rank, backend='nccl', **kwargs):
+    print(1)
     r"""Initialize distributed training"""
     if dist.is_available():
+        print(2)
         if dist.is_initialized():
+            print(3)
             return torch.cuda.current_device()
+        print(4)
         torch.cuda.set_device(local_rank)
+        print(5)
         dist.init_process_group(backend=backend, init_method='env://', **kwargs)
-
+        print(6)
+    print(7)
     # Increase the L2 fetch granularity for faster speed.
     _libcudart = ctypes.CDLL('libcudart.so')
     # Set device limit on the current device

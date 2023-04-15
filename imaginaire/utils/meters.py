@@ -8,7 +8,7 @@ from datetime import timedelta
 import torch
 import wandb
 from wandb import AlertLevel
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 from imaginaire.utils.distributed import master_only, dist_all_reduce_tensor, \
     is_master, get_rank
@@ -127,9 +127,9 @@ class Meter(object):
         filtered_values = list(filter(lambda x: math.isfinite(x), self.values))
         if float(len(filtered_values)) != 0:
             value = float(sum(filtered_values)) / float(len(filtered_values))
-            if is_master():
-                write_summary(self.name, value, step)
-                wandb.log({self.name: value}, step=step)
+            # if is_master():
+            #     write_summary(self.name, value, step)
+            #     wandb.log({self.name: value}, step=step)
         self.reset()
 
     @master_only

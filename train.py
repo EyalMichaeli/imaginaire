@@ -6,9 +6,10 @@ import argparse
 import os
 import sys
 import random
-
+import logging
 import torch.autograd.profiler as profiler
 import wandb
+import datetime
 
 import imaginaire.config
 from imaginaire.config import Config
@@ -25,28 +26,6 @@ from imaginaire.utils.trainer import (get_model_optimizer_and_scheduler,
 sys.path.append(os.environ.get('SUBMIT_SCRIPTS', '.'))
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='Training')
-    parser.add_argument('--config',
-                        help='Path to the training config file.', required=True)
-    parser.add_argument('--logdir', help='Dir for saving logs and models.')
-    parser.add_argument('--checkpoint', default='', help='Checkpoint path.')
-    parser.add_argument('--seed', type=int, default=2, help='Random seed.')
-    parser.add_argument('--randomized_seed', action='store_true', help='Use a random seed between 0-10000.')
-    parser.add_argument('--local_rank', type=int, default=os.getenv('LOCAL_RANK', 0))
-    parser.add_argument('--single_gpu', action='store_true')
-    parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--use_jit', action='store_true')
-    parser.add_argument('--profile', action='store_true')
-    parser.add_argument('--wandb', action='store_true')
-    parser.add_argument('--wandb_name', default='default', type=str)
-    parser.add_argument('--wandb_id', type=str)
-    parser.add_argument('--resume', type=int)
-    parser.add_argument('--num_workers', type=int)
-    args = parser.parse_args()
-    return args
-
-
 def main():
     args = parse_args()
     set_affinity(args.local_rank)
@@ -54,18 +33,18 @@ def main():
         args.seed = random.randint(0, 10000)
     set_random_seed(args.seed, by_rank=True)
     cfg = Config(args.config)
-    try:
-        from userlib.auto_resume import AutoResume
-        AutoResume.init()
-    except:  # noqa
-        pass
+    # try:
+    #     from userlib.auto_resume import AutoResume
+    #     AutoResume.init()
+    # except:  # noqa
+    #     pass
 
     # If args.single_gpu is set to True,
     # we will disable distributed data parallel
     if not args.single_gpu:
         cfg.local_rank = args.local_rank
         init_dist(cfg.local_rank)
-    print(f"Training with {get_world_size()} GPUs.")
+    logging.info(f"Training with {get_world_size()} GPUs.")
 
     # Global arguments.
     imaginaire.config.DEBUG = args.debug
@@ -121,7 +100,7 @@ def main():
 
     # Start training.
     for epoch in range(current_epoch, cfg.max_epoch):
-        print('Epoch {} ...'.format(epoch))
+        logging.info('Epoch {} ...'.format(epoch))
         if not args.single_gpu:
             train_data_loader.sampler.set_epoch(current_epoch)
         trainer.start_of_epoch(current_epoch)
@@ -144,25 +123,73 @@ def main():
                 current_iteration += 1
                 trainer.end_of_iteration(data, current_epoch, current_iteration)
                 if current_iteration >= cfg.max_iter:
-                    print('Done with training!!!')
+                    logging.info('Done with training!!!')
                     return
             if args.profile:
-                print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
+                logging.info(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
                 prof.export_chrome_trace(os.path.join(cfg.logdir, "trace.json"))
-            try:
-                if AutoResume.termination_requested():
-                    trainer.save_checkpoint(current_epoch, current_iteration)
-                    AutoResume.request_resume()
-                    print("Training terminated. Returning")
-                    return 0
-            except:  # noqa
-                pass
+            # try:
+            #     if AutoResume.termination_requested():
+            #         trainer.save_checkpoint(current_epoch, current_iteration)
+            #         AutoResume.request_resume()
+            #         logging.info("Training terminated. Returning")
+            #         return 0
+            # except:  # noqa
+            #     logging.info("AutoResume didn't work")
+            #     pass
 
         current_epoch += 1
         trainer.end_of_epoch(data, current_epoch, current_iteration)
-    print('Done with training!!!')
+    logging.info('Done with training!!!')
     return
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Training')
+    parser.add_argument('--config',
+                        help='Path to the training config file.', required=True)
+    parser.add_argument('--logdir', help='Dir for saving logs and models.')
+    parser.add_argument('--checkpoint', default='', help='Checkpoint path.')
+    parser.add_argument('--seed', type=int, default=2, help='Random seed.')
+    parser.add_argument('--randomized_seed', action='store_true', help='Use a random seed between 0-10000.')
+    parser.add_argument('--local_rank', type=int, default=os.getenv('LOCAL_RANK', 0))
+    parser.add_argument('--single_gpu', action='store_true')
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--use_jit', action='store_true')
+    parser.add_argument('--profile', action='store_true')
+    parser.add_argument('--wandb', action='store_true')
+    parser.add_argument('--wandb_name', default='default', type=str)
+    parser.add_argument('--wandb_id', type=str)
+    parser.add_argument('--resume', type=int)
+    parser.add_argument('--num_workers', type=int)
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == "__main__":
     main()
+
+"""
+commands:
+
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_cs2cs_v1_lower_LR_not_calc_fid.log &
+
+resume:
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/2023_0412_1235_03_ampO1_lower_LR/checkpoints/epoch_00001_iteration_000120000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue.log &
+
+low LR config:
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &
+
+"""
+
+
+
+"""
+env installation:
+
+in order to install env, i:
+1. installed pytroch 1.9
+2. installed req.txt
+3. installed third parties using (sh scripts/install_with_conda.sh  - I commented out the installing env part in the script)
+    IMPORTANT: ONLY did that after running export CUDA_HOME=/usr/local/cuda-11.1 to make sure that one is visible.
+"""

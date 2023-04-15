@@ -27,7 +27,7 @@ class Generator(nn.Module):
         self.autoencoder_b = AutoEncoder(**vars(gen_cfg))
 
     def forward(self, data, random_style=True, image_recon=True,
-                latent_recon=True, cycle_recon=True, within_latent_recon=False):
+                latent_recon=True, cycle_recon=True, within_latent_recon=False, random_style_std: float = 1.5):
         r"""In MUNIT's forward pass, it generates a content code and a style
         code from images in both domain. It then performs a within-domain
         reconstruction step and a cross-domain translation step.
@@ -52,6 +52,7 @@ class Generator(nn.Module):
                 reconstructed images.
             within_latent_recon (bool): If ``True``, also returns reconstructed
                 latent code during within-domain reconstruction.
+            random_style_std (float): Standard deviation of the random style (new variable)
         """
 
         images_a = data['images_a']
@@ -70,8 +71,8 @@ class Generator(nn.Module):
 
         # decode (cross domain)
         if random_style:  # use randomly sampled style code
-            style_a_rand = torch.randn_like(style_a)
-            style_b_rand = torch.randn_like(style_b)
+            style_a_rand = torch.randn_like(style_a) * random_style_std
+            style_b_rand = torch.randn_like(style_b) * random_style_std
         else:  # use style code encoded from the other domain
             style_a_rand = style_a
             style_b_rand = style_b

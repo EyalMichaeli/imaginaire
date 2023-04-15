@@ -1,9 +1,9 @@
-name: imaginaire
+name: munit_new
 channels:
   - conda-forge
   - pytorch
 dependencies:
-  - python=3.8
+  # - python=3.8
   - pytorch=1.9
   - torchvision
   - cudatoolkit-dev

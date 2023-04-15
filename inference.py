@@ -14,6 +14,7 @@ from imaginaire.utils.logging import init_logging
 from imaginaire.utils.trainer import \
     (get_model_optimizer_and_scheduler, get_trainer, set_random_seed)
 import imaginaire.config
+import logging
 
 
 def parse_args():
@@ -35,6 +36,9 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+""" 
+python inference.py --single_gpu --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --checkpoint logs/2023_0325_1223_07_ampO1_lower_LR/epoch_00005_iteration_000145000_checkpoint.pt --output_dir logs/2023_0325_1223_07_ampO1_lower_LR/inference_cp_180k
+"""
 
 def main():
     args = parse_args()
@@ -75,11 +79,11 @@ def main():
         # Download pretrained weights.
         pretrained_weight_url = cfg.pretrained_weight
         if pretrained_weight_url == '':
-            print('link to the pretrained weight is not specified.')
+            logging.info('link to the pretrained weight is not specified.')
             raise
         default_checkpoint_path = args.config.split('.yaml')[0] + '-' + cfg.pretrained_weight + '.pt'
         args.checkpoint = get_checkpoint(default_checkpoint_path, pretrained_weight_url)
-        print('Checkpoint downloaded to', args.checkpoint)
+        logging.info('Checkpoint downloaded to', args.checkpoint)
 
     # Load checkpoint.
     trainer.load_checkpoint(cfg, args.checkpoint)

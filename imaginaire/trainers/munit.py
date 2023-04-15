@@ -3,6 +3,7 @@
 # This work is made available under the Nvidia Source Code License-NC.
 # To view a copy of this license, check out LICENSE.md
 import torch
+import logging
 
 from imaginaire.evaluation import compute_fid
 from imaginaire.losses import (GANLoss, GaussianKLLoss,
@@ -276,6 +277,8 @@ class Trainer(BaseTrainer):
 
     def write_metrics(self):
         r"""Compute metrics and save them to tensorboard"""
+        logging.info('Not Computing FID!')
+        return
         cur_fid_a, cur_fid_b = self._compute_fid()
         if self.best_fid_a is not None:
             self.best_fid_a = min(self.best_fid_a, cur_fid_a)
@@ -302,11 +305,13 @@ class Trainer(BaseTrainer):
             net_G_for_evaluation = self.net_G
         fid_a_path = self._get_save_path('fid_a', 'npy')
         fid_b_path = self._get_save_path('fid_b', 'npy')
+        logging.info('Computing FID for domain A...')
         fid_value_a = compute_fid(fid_a_path, self.val_data_loader,
                                   net_G_for_evaluation, 'images_a', 'images_ba')
+        logging.info('Computing FID for domain B...')
         fid_value_b = compute_fid(fid_b_path, self.val_data_loader,
                                   net_G_for_evaluation, 'images_b', 'images_ab')
-        print('Epoch {:05}, Iteration {:09}, FID a {}, FID b {}'.format(
+        logging.info('Epoch {:05}, Iteration {:09}, FID a {}, FID b {}'.format(
             self.current_epoch, self.current_iteration,
             fid_value_a, fid_value_b))
         return fid_value_a, fid_value_b
