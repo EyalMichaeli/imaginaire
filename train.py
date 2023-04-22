@@ -58,6 +58,9 @@ def main():
     cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
     make_logging_dir(cfg.logdir)
 
+    # copy the config given by the user to the log dir
+    os.system(f"cp {args.config} {cfg.logdir}")
+
     # Initialize cudnn.
     init_cudnn(cfg.cudnn.deterministic, cfg.cudnn.benchmark)
 
@@ -68,6 +71,9 @@ def main():
     train_data_loader, val_data_loader = get_train_and_val_dataloader(cfg, args.seed)
     net_G, net_D, opt_G, opt_D, sch_G, sch_D = \
         get_model_optimizer_and_scheduler(cfg, seed=args.seed)
+    # print the LR
+    for param_group in opt_G.param_groups:
+        logging.info(f"LR of G: {param_group['lr']}")
     trainer = get_trainer(cfg, net_G, net_D,
                           opt_G, opt_D,
                           sch_G, sch_D,
@@ -172,10 +178,10 @@ if __name__ == "__main__":
 """
 commands:
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_cs2cs_v1_lower_LR_not_calc_fid.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bss10k2bdd10k_v2_lower_LR.log &
 
 resume:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/2023_0412_1235_03_ampO1_lower_LR/checkpoints/epoch_00001_iteration_000120000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue_200k.log &
 
 low LR config:
 nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &

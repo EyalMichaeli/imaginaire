@@ -9,7 +9,7 @@ inference_args:
 # How often do you want to log the training stats.
 logging_iter: 100
 # Number of training epochs.
-max_iter: 200000
+max_iter: 400000
 # Whether to benchmark speed or not.
 speed_benchmark: False
 

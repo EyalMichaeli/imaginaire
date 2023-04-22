@@ -109,7 +109,7 @@ class Generator(nn.Module):
 
         return net_G_output
 
-    def inference(self, data, a2b=True, random_style=True):
+    def inference(self, data, a2b=True, random_style=True, return_source=False, style_std: float = 1.5):
         r"""MUNIT inference.
 
         Args:
@@ -121,6 +121,9 @@ class Generator(nn.Module):
             random_style (bool): If ``True``, samples the style code from the
                 prior distribution, otherwise uses the style code encoded from
                 the input images in the other domain.
+            return_source (bool): If ``True``, also returns the source image (new variable)
+            style_std (float): Standard deviation of the random style (new variable)
+            Returns: Translated images. If ``return_source`` is ``True``, also returns the source image.
         """
         if a2b:
             input_key = 'images_a'
@@ -138,7 +141,7 @@ class Generator(nn.Module):
         if random_style:
             style_channels = self.autoencoder_a.style_channels
             style = torch.randn(content.size(0), style_channels, 1, 1,
-                                device=torch.device('cuda'))
+                                device=torch.device('cuda')) * style_std
             file_names = data['key'][input_key]['filename']
         else:
             style_key = 'images_b' if a2b else 'images_a'
@@ -154,6 +157,8 @@ class Generator(nn.Module):
                         data['key'][style_key]['filename'])]
 
         output_images = decode(content, style)
+        if return_source:
+            return output_images, content_images, file_names
         return output_images, file_names
 
 

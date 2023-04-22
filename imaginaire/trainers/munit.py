@@ -264,14 +264,15 @@ class Trainer(BaseTrainer):
             net_G_output = net_G_for_evaluation(data, random_style=False)
             net_G_output_random = net_G_for_evaluation(data)
             vis_images = [data['images_a'],
-                          data['images_b'],
                           net_G_output['images_aa'],
-                          net_G_output['images_bb'],
                           net_G_output['images_ab'],
                           net_G_output_random['images_ab'],
+                          net_G_output['images_aba'],
+                          # images b
+                          data['images_b'],
+                          net_G_output['images_bb'],
                           net_G_output['images_ba'],
                           net_G_output_random['images_ba'],
-                          net_G_output['images_aba'],
                           net_G_output['images_bab']]
             return vis_images
 

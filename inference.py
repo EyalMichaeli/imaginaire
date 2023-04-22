@@ -33,11 +33,13 @@ def parse_args():
     parser.add_argument('--single_gpu', action='store_true')
     parser.add_argument('--num_workers', type=int)
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--style_std', type=float, default=1.0)
     args = parser.parse_args()
     return args
 
 """ 
-python inference.py --single_gpu --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --checkpoint logs/2023_0325_1223_07_ampO1_lower_LR/epoch_00005_iteration_000145000_checkpoint.pt --output_dir logs/2023_0325_1223_07_ampO1_lower_LR/inference_cp_180k
+CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --style_std 2.0 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00003_iteration_000285000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_285k_coef_1.5
+
 """
 
 def main():
@@ -91,7 +93,7 @@ def main():
     # Do inference.
     trainer.current_epoch = -1
     trainer.current_iteration = -1
-    trainer.test(test_data_loader, args.output_dir, cfg.inference_args)
+    trainer.test(test_data_loader, args.output_dir, cfg.inference_args, style_std=args.style_std)
 
 
 if __name__ == "__main__":

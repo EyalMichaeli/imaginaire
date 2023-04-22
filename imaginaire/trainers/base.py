@@ -836,13 +836,15 @@ class BaseTrainer(object):
     def _extra_dis_step(self, data):
         pass
 
-    def test(self, data_loader, output_dir, inference_args):
+    def test(self, data_loader, output_dir, inference_args, style_std: float = 1.0):
         r"""Compute results images for a batch of input data and save the
         results in the specified folder.
 
         Args:
             data_loader (torch.utils.data.DataLoader): PyTorch dataloader.
             output_dir (str): Target location for saving the output image.
+            inference_args (argparse.Namespace): Arguments for inference.
+            style_std (float): Standard deviation of the style code.
         """
         NUM_OUTPUT_IMAGES = 5
         if self.cfg.trainer.model_average_config.enabled:
@@ -852,17 +854,23 @@ class BaseTrainer(object):
         net_G.eval()
 
         logging.info('# of samples %d' % len(data_loader))
+        logging.info(f"Using style_std={style_std}")
         for it, data in enumerate(tqdm(data_loader)):
             data = self.start_of_iteration(data, current_iteration=-1)
+
             for i in range(NUM_OUTPUT_IMAGES):
                 with torch.no_grad():
                     output_images, file_names = \
-                        net_G.inference(data, **vars(inference_args))
+                        net_G.inference(data, **vars(inference_args), style_std=style_std)
+                    
+                    fullname = os.path.join(output_dir, f"{file_names[0]}_source.jpg")
+                    image = tensor2pilimage(data['images_a'][0].clamp_(-1, 1), minus1to1_normalized=True)
+                    save_pilimage_in_jpeg(fullname, image)
+                    
                 for output_image, file_name in zip(output_images, file_names):
                     fullname = os.path.join(output_dir, f"{file_name}_{i}.jpg")
 
-                    output_image = tensor2pilimage(output_image.clamp_(-1, 1),
-                                                minus1to1_normalized=True)
+                    output_image = tensor2pilimage(output_image.clamp_(-1, 1), minus1to1_normalized=True)
                     save_pilimage_in_jpeg(fullname, output_image)
 
     def _get_total_loss(self, gen_forward):

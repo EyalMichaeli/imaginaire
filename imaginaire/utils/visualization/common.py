@@ -55,9 +55,9 @@ def tensor2pilimage(image, width=None, height=None, minus1to1_normalized=False):
         (PIL image): The resulting PIL image.
     """
     if len(image.size()) != 3:
-        raise ValueError('Image tensor dimension does not equal = 3.')
+        raise ValueError(f'Image tensor dimension does not equal = 3, image.size(): {image.size()}')
     if image.size(0) != 3:
-        raise ValueError('Image has more than 3 channels.')
+        raise ValueError(f'Image doesnt have 3 channels, image.size(0): {image.size(0)}')
     if minus1to1_normalized:
         # Normalize back to [0, 1]
         image = (image + 1) * 0.5
