@@ -29,7 +29,7 @@ trainer:
         gan: 1
         image_recon: 10
         content_recon: 1
-        style_recon: 1
+        style_recon: 2
         perceptual: 0
         cycle_recon: 10
         gp: 0

@@ -19,11 +19,50 @@ from imaginaire.utils.distributed import init_dist, is_master, get_world_size
 from imaginaire.utils.distributed import master_only_print as print
 from imaginaire.utils.gpu_affinity import set_affinity
 from imaginaire.utils.misc import slice_tensor
-from imaginaire.utils.logging import init_logging, make_logging_dir
+from imaginaire.utils.logging import make_logging_dir
 from imaginaire.utils.trainer import (get_model_optimizer_and_scheduler,
                                       get_trainer, set_random_seed)
 
 sys.path.append(os.environ.get('SUBMIT_SCRIPTS', '.'))
+
+
+
+def get_date_uid():
+    """Generate a unique id based on date.
+    Returns:
+        str: Return uid string, e.g. '20171122171307111552'.
+    """
+    return str(datetime.datetime.now().strftime("%Y_%m%d_%H%M_%S"))
+
+
+def init_logging(config_path, logdir):
+    r"""Create log directory for storing checkpoints and output images.
+
+    Args:
+        config_path (str): Path to the configuration file.
+        logdir (str): Log directory name
+    Returns:
+        str: Return log dir
+    """
+    config_file = os.path.basename(config_path)
+    root_dir = 'logs'
+    date_uid = get_date_uid()
+    # example: logs/2019_0125_1047_58_spade_cocostuff
+    log_folder_name = '_'.join([date_uid, os.path.splitext(config_file)[0]])
+    os.makedirs(root_dir, exist_ok=True)
+    log_folder = os.path.join(root_dir, log_folder_name)
+    os.makedirs(log_folder, exist_ok=True)
+    log_file = os.path.join(root_dir, log_folder_name, 'log.log')
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
+    fh = logging.FileHandler(log_file, mode='w')
+    fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+    logging.getLogger().addHandler(fh)
+    if logdir is None:
+        logdir = os.path.join(root_dir, log_folder_name)
+    
+    logging.info('Log directory: {}'.format(logdir))
+    logging.info('Config file: {}'.format(config_path))
+    return date_uid, logdir
 
 
 def main():
@@ -56,7 +95,7 @@ def main():
 
     # Create log directory for storing training results.
     cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
-    make_logging_dir(cfg.logdir)
+    # make_logging_dir(cfg.logdir)
 
     # copy the config given by the user to the log dir
     os.system(f"cp {args.config} {cfg.logdir}")
@@ -178,7 +217,7 @@ if __name__ == "__main__":
 """
 commands:
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bss10k2bdd10k_v2_lower_LR.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd10k2bdd10k_v2_lower_LR_style_recon_2.0.log &
 
 resume:
 nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue_200k.log &
