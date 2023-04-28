@@ -13,6 +13,7 @@ from imaginaire.utils.io import get_checkpoint as get_checkpoint
 from imaginaire.utils.trainer import \
     (get_model_optimizer_and_scheduler, get_trainer, set_random_seed)
 import imaginaire.config
+from train import init_logging
 import logging
 
 
@@ -33,11 +34,12 @@ def parse_args():
     parser.add_argument('--num_workers', type=int)
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--style_std', type=float, default=1.0)
+    parser.add_argument('--save_raw_output', action='store_true')  # saves only grid plot if false
     args = parser.parse_args()
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --style_std 2.0 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00005_iteration_000400000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_400k_style_std_2.0
+CUDA_VISIBLE_DEVICES=0 python inference.py --single_gpu --style_std 1.0 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0422_2242_44_ampO1_lower_LR/checkpoints/epoch_00005_iteration_000400000_checkpoint.pt --output_dir logs/2023_0422_2242_44_ampO1_lower_LR/inference_cp_400k_style_std_1.0
 
 """
 
@@ -62,7 +64,7 @@ def main():
         cfg.data.num_workers = args.num_workers
 
     # Create log directory for storing training results.
-    # cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
+    cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
 
     # Initialize cudnn.
     init_cudnn(cfg.cudnn.deterministic, cfg.cudnn.benchmark)
@@ -92,7 +94,7 @@ def main():
     # Do inference.
     trainer.current_epoch = -1
     trainer.current_iteration = -1
-    trainer.test(test_data_loader, args.output_dir, cfg.inference_args, style_std=args.style_std)
+    trainer.test(test_data_loader, args.output_dir, cfg.inference_args, style_std=args.style_std, save_raw_output=args.save_raw_output)
 
 
 if __name__ == "__main__":

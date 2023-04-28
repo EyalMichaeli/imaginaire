@@ -20,7 +20,7 @@ from imaginaire.utils.meters import Meter
 from imaginaire.utils.misc import to_cuda, to_device, requires_grad, to_channels_last
 from imaginaire.utils.model_average import (calibrate_batch_norm_momentum,
                                             reset_batch_norm)
-from imaginaire.utils.visualization import tensor2pilimage
+from imaginaire.utils.visualization import tensor2pilimage, plot_images_grid_and_save
 
 
 """
@@ -836,7 +836,7 @@ class BaseTrainer(object):
     def _extra_dis_step(self, data):
         pass
 
-    def test(self, data_loader, output_dir, inference_args, style_std: float = 1.0):
+    def test(self, data_loader, output_dir, inference_args, style_std: float = 1.0, save_raw_output=False):
         r"""Compute results images for a batch of input data and save the
         results in the specified folder.
 
@@ -845,6 +845,7 @@ class BaseTrainer(object):
             output_dir (str): Target location for saving the output image.
             inference_args (argparse.Namespace): Arguments for inference.
             style_std (float): Standard deviation of the style code.
+            save_raw_output (bool): Whether to save the raw output, or just the grid plots
         """
         NUM_OUTPUT_IMAGES = 5
         if self.cfg.trainer.model_average_config.enabled:
@@ -855,8 +856,11 @@ class BaseTrainer(object):
 
         logging.info('# of samples %d' % len(data_loader))
         logging.info(f"Using style_std={style_std}")
+        # create the plot dir
+        os.makedirs(f"{output_dir}_plots", exist_ok=True)
         for it, data in enumerate(tqdm(data_loader)):
             data = self.start_of_iteration(data, current_iteration=-1)
+            list_of_images = []
 
             for i in range(NUM_OUTPUT_IMAGES):
                 with torch.no_grad():
@@ -864,14 +868,25 @@ class BaseTrainer(object):
                         net_G.inference(data, **vars(inference_args), style_std=style_std)
                     
                     fullname = os.path.join(output_dir, f"{file_names[0]}_source.jpg")
-                    image = tensor2pilimage(data['images_a'][0].clamp_(-1, 1), minus1to1_normalized=True)
-                    save_pilimage_in_jpeg(fullname, image)
+                    image_tensor = data['images_a'][0].clamp_(-1, 1)
+                    image = tensor2pilimage(image_tensor, minus1to1_normalized=True)
+                    if i == 0:
+                        list_of_images.append(image_tensor*0.5 + 0.5)
+
+                    if save_raw_output:
+                        save_pilimage_in_jpeg(fullname, image)
                     
                 for output_image, file_name in zip(output_images, file_names):
                     fullname = os.path.join(output_dir, f"{file_name}_{i}.jpg")
+                    output_tensor = output_image.clamp_(-1, 1)
+                    output_image = tensor2pilimage(output_tensor, minus1to1_normalized=True)
 
-                    output_image = tensor2pilimage(output_image.clamp_(-1, 1), minus1to1_normalized=True)
-                    save_pilimage_in_jpeg(fullname, output_image)
+                    list_of_images.append(output_tensor*0.5 + 0.5)
+
+                    if save_raw_output:
+                        save_pilimage_in_jpeg(fullname, output_image)
+
+            plot_images_grid_and_save(list_of_images, f"{output_dir}_plots/grid_plot_{it}.jpg")
 
     def _get_total_loss(self, gen_forward):
         r"""Return the total loss to be backpropagated.

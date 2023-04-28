@@ -39,6 +39,25 @@ def save_tensor_image(
     torchvision.utils.save_image(image_grid, filename, nrow=1)
     return
 
+def plot_images_grid_and_save(list_of_images: list, filename: str):
+    r"""Plot a list of images in a grid.
+
+    Args:
+        list_of_images (list): List of images to plot, each image is a 3 x W x H tensor.
+        filename (str): plot filename to be saved to.
+    """
+    if len(list_of_images) == 0:
+        raise ValueError('list_of_images is empty.')
+    if len(list_of_images[0].size()) != 3:
+        raise ValueError('Image tensor dimension does not equal = 3.')
+    if list_of_images[0].size(0) != 3:
+        raise ValueError('Image has more than 3 channels.')
+    # plot the images, make sure each row has maximum of 2 images. For example if there are 5 images in list_of_images, there will be 3 rows.
+    nrow = min(3, len(list_of_images))
+    image_grid = torchvision.utils.make_grid(
+        list_of_images, nrow=nrow, padding=0, normalize=False)
+    torchvision.utils.save_image(image_grid, filename, nrow=nrow)
+
 
 def tensor2pilimage(image, width=None, height=None, minus1to1_normalized=False):
     r"""Convert a 3 dimensional torch tensor to a PIL image with the desired
