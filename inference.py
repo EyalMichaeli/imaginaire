@@ -10,7 +10,6 @@ from imaginaire.utils.dataset import get_test_dataloader
 from imaginaire.utils.distributed import init_dist
 from imaginaire.utils.gpu_affinity import set_affinity
 from imaginaire.utils.io import get_checkpoint as get_checkpoint
-from imaginaire.utils.logging import init_logging
 from imaginaire.utils.trainer import \
     (get_model_optimizer_and_scheduler, get_trainer, set_random_seed)
 import imaginaire.config
@@ -38,7 +37,7 @@ def parse_args():
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --style_std 2.0 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00003_iteration_000285000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_285k_coef_1.5
+CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --style_std 2.0 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00005_iteration_000400000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_400k_style_std_2.0
 
 """
 
@@ -63,7 +62,7 @@ def main():
         cfg.data.num_workers = args.num_workers
 
     # Create log directory for storing training results.
-    cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
+    # cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
 
     # Initialize cudnn.
     init_cudnn(cfg.cudnn.deterministic, cfg.cudnn.benchmark)
