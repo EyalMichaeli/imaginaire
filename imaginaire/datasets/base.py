@@ -11,7 +11,7 @@ import pickle
 from collections import OrderedDict
 from functools import partial
 from inspect import signature
-
+import logging
 import numpy as np
 import torch
 import torch.utils.data as data
@@ -86,7 +86,7 @@ class BaseDataset(data.Dataset):
             # Add handle to function to load data from folder.
             self.load_from_dataset = load_from_folder
             # Create metadata for folders.
-            print('Creating metadata')
+            logging.info('Creating metadata')
             all_filenames, all_metadata = [], []
             if self.is_test:
                 cfg.data_backup = cfg.data
@@ -213,6 +213,7 @@ class BaseDataset(data.Dataset):
             if self.dataset_type == 'lmdb':
                 self._add_dataset(root)
             elif self.dataset_type == 'folder':
+                logging.info("Loading dataset from folder: {}".format(root))
                 self._add_dataset(root, filenames=all_filenames[idx],
                                   metadata=all_metadata[idx])
             elif self.dataset_type == 'object_store':
@@ -286,7 +287,7 @@ class BaseDataset(data.Dataset):
 
             additional_path = 'all_indices.json'
             if os.path.exists(os.path.join(root, additional_path)):
-                print('Using additional list for object indices.')
+                logging.info('Using additional list for object indices.')
                 with open(os.path.join(root, additional_path)) as fin:
                     additional_list = OrderedDict(json.load(fin))
                 self.additional_lists.append(additional_list)
@@ -377,7 +378,7 @@ class BaseDataset(data.Dataset):
             return data
 
         for data_type in self.hdr_image_data_types:
-            # print('Length of data: {}'.format(len(data[data_type])))
+            # logging.info('Length of data: {}'.format(len(data[data_type])))
             data[data_type][0] = data[data_type][0][:, ::-1, :].copy()
         return data
 

@@ -39,8 +39,7 @@ def parse_args():
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --save_raw_output --style_std 1.5 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00004_iteration_000400000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_400k_style_std_1.5
-
+CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 1.5 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00004_iteration_000400000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_400k_style_std_1.5_on_new_10k
 """
 
 def main():

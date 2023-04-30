@@ -183,7 +183,8 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
                 folder = '%s/%s/%s/*.%s' % (
                     data_root, search_dir, sequence,
                     extensions[search_dir])
-                filenames = sorted(glob.glob(folder))
+                # filenames = sorted(glob.glob(folder))
+                filenames = glob.glob(folder)  # removed the sorted bc I needed it to be in the same order as the loading in HybridNets
                 filenames = [
                     os.path.splitext(os.path.basename(filename))[0] for
                     filename in filenames]
@@ -204,7 +205,8 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
             for sequence in sequences:
                 folder = '%s/%s/%s/*.%s' % (
                     data_root, data_type, sequence, extensions[data_type])
-                filenames = sorted(glob.glob(folder))
+                # filenames = sorted(glob.glob(folder))
+                filenames = glob.glob(folder)  # removed the sorted bc I needed it to be in the same order as the loading in HybridNets
                 filenames = [
                     os.path.splitext(os.path.basename(filename))[0] for
                     filename in filenames]
