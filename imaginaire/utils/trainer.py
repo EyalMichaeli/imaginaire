@@ -5,6 +5,7 @@
 import importlib
 import random
 import numpy as np
+import logging
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -26,7 +27,7 @@ def set_random_seed(seed, by_rank=False):
     """
     if by_rank:
         seed += get_rank()
-    print(f"Using random seed {seed}")
+    logging.info(f"Using random seed {seed}")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -93,7 +94,7 @@ def get_model_optimizer_and_scheduler(cfg, seed=0):
     lib_D = importlib.import_module(cfg.dis.type)
     net_G = lib_G.Generator(cfg.gen, cfg.data)
     net_D = lib_D.Discriminator(cfg.dis, cfg.data)
-    print('Initialize net_G and net_D weights using '
+    logging.info('Initialize net_G and net_D weights using '
           'type: {} gain: {}'.format(cfg.trainer.init.type,
                                      cfg.trainer.init.gain))
     init_bias = getattr(cfg.trainer.init, 'bias', None)
@@ -112,8 +113,8 @@ def get_model_optimizer_and_scheduler(cfg, seed=0):
     # initialized with different random seeds (if applicable) thanks to the
     # set_random_seed command (GPU #K has random seed = args.seed + K).
     set_random_seed(seed, by_rank=True)
-    print('net_G parameter count: {:,}'.format(_calculate_model_size(net_G)))
-    print('net_D parameter count: {:,}'.format(_calculate_model_size(net_D)))
+    logging.info('net_G parameter count: {:,}'.format(_calculate_model_size(net_G)))
+    logging.info('net_D parameter count: {:,}'.format(_calculate_model_size(net_D)))
 
     # Optimizer
     opt_G = get_optimizer(cfg.gen_opt, net_G)
@@ -154,7 +155,7 @@ def wrap_model_and_optimizer(cfg, net_G, net_D, opt_G, opt_D):
             cfg.trainer.model_average_config.beta = \
                 0.5 ** (cfg.data.train.batch_size *
                         get_world_size() / cfg.trainer.model_average_config.g_smooth_img)
-            print(f"EMA Decay Factor: {cfg.trainer.model_average_config.beta}")
+            logging.info(f"EMA Decay Factor: {cfg.trainer.model_average_config.beta}")
         net_G = ModelAverage(net_G, cfg.trainer.model_average_config.beta,
                              cfg.trainer.model_average_config.start_iteration,
                              cfg.trainer.model_average_config.remove_sn)

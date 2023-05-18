@@ -35,11 +35,15 @@ def parse_args():
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--style_std', type=float, default=1.0)
     parser.add_argument('--save_raw_output', action='store_true')  # saves only grid plot if false
+    parser.add_argument('--num_images', type=int, default=10000)
     args = parser.parse_args()
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 1.5 --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --checkpoint logs/2023_0421_1405_28_ampO1_lower_LR/checkpoints/epoch_00004_iteration_000400000_checkpoint.pt --output_dir logs/2023_0421_1405_28_ampO1_lower_LR/inference_cp_400k_style_std_1.5_on_new_10k
+CUDA_VISIBLE_DEVICES=0 python inference.py --single_gpu --save_raw_output --style_std 1.0 \
+    --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml \
+        --checkpoint logs/2023_0422_2242_44_ampO1_lower_LR/checkpoints/epoch_00005_iteration_000400000_checkpoint.pt \
+            --output_dir logs/2023_0422_2242_44_ampO1_lower_LR/inference_cp_400k_style_std_1.0_on_new_10k_matching_csv
 """
 
 def main():

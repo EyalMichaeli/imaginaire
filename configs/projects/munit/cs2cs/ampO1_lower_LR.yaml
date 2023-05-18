@@ -9,7 +9,7 @@ inference_args:
 # How often do you want to log the training stats.
 logging_iter: 100
 # Number of training epochs.
-max_iter: 200000
+max_iter: 400000
 # Whether to benchmark speed or not.
 speed_benchmark: False
 
@@ -29,8 +29,8 @@ trainer:
         gan: 1
         image_recon: 10
         content_recon: 1
-        style_recon: 1
-        perceptual: 0
+        style_recon: 2
+        perceptual: 1
         cycle_recon: 10
         gp: 0
         consistency_reg: 0
@@ -108,11 +108,11 @@ data:
         # Data augmentations to be performed in given order.
         augmentations:
             # First resize all inputs to this size.
-            resize_h_w: 1024, 1024
+            resize_h_w: 512, 1024
             # Horizontal flip?
             horizontal_flip: True
             # Crop size.
-            random_crop_h_w: 1024, 1024
+            random_crop_h_w: 512, 1024
 
     # Val dataset details.
     val:
@@ -123,7 +123,7 @@ data:
         batch_size: 1
         # If resize_h_w is not given, then it is assumed to be same as crop_h_w.
         augmentations:
-            center_crop_h_w: 1024, 1024
+            center_crop_h_w: 512, 1024
 
 test_data:
     # Name of this dataset.
@@ -144,6 +144,7 @@ test_data:
     paired: False
     # Validation dataset details.
     test:
+        num_images: -1  # -1 is take all
         is_lmdb: False
         roots:
             - /mnt/raid/home/eyal_michaeli/datasets/cityscapes/gtFine_train_grouped
@@ -151,5 +152,5 @@ test_data:
         batch_size: 1
         # If resize_h_w is not given, then it is assumed to be same as crop_h_w.
         augmentations:
-            resize_smallest_side: 1024
+            resize_smallest_side: 512
             

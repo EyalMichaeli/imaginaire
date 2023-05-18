@@ -3,6 +3,7 @@
 # This work is made available under the Nvidia Source Code License-NC.
 # To view a copy of this license, check out LICENSE.md
 import importlib
+import logging
 
 import torch
 import torch.distributed as dist
@@ -28,8 +29,8 @@ def _get_train_and_val_dataset_objects(cfg):
             setattr(cfg.data, key, getattr(cfg.data.val, key))
         dataset_module = importlib.import_module(cfg.data.type)
     val_dataset = dataset_module.Dataset(cfg, is_inference=True)
-    print('Train dataset length:', len(train_dataset))
-    print('Val dataset length:', len(val_dataset))
+    logging.info(f'Train dataset length: {len(train_dataset)}')
+    logging.info(f'Val dataset length: {len(val_dataset)}')
     return train_dataset, val_dataset
 
 

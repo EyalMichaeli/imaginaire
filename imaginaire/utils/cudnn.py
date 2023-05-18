@@ -3,7 +3,7 @@
 # This work is made available under the Nvidia Source Code License-NC.
 # To view a copy of this license, check out LICENSE.md
 import torch.backends.cudnn as cudnn
-
+import logging
 from imaginaire.utils.distributed import master_only_print as print
 
 
@@ -18,5 +18,5 @@ def init_cudnn(deterministic, benchmark):
     """
     cudnn.deterministic = deterministic
     cudnn.benchmark = benchmark
-    print('cudnn benchmark: {}'.format(benchmark))
-    print('cudnn deterministic: {}'.format(deterministic))
+    logging.info('cudnn benchmark: {}'.format(benchmark))
+    logging.info('cudnn deterministic: {}'.format(deterministic))

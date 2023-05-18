@@ -4,7 +4,7 @@
 # To view a copy of this license, check out LICENSE.md
 import glob
 import os
-
+import logging
 import lmdb
 from tqdm import tqdm
 
@@ -30,7 +30,7 @@ def check_and_add(filepath, key, filepaths, keys, remove_missing=False):
         (int): Size of file at filepath.
     """
     if not os.path.exists(filepath):
-        print(filepath + ' does not exist.')
+        logging.info(filepath + ' does not exist.')
         if remove_missing:
             return -1
         else:
@@ -68,7 +68,7 @@ def build_lmdb(filepaths, keys, output_filepath, map_size, large):
     else:
         db = lmdb.open(output_filepath, map_size=map_size)
     txn = db.begin(write=True)
-    print('Writing LMDB to:', output_filepath)
+    logging.info('Writing LMDB to:', output_filepath)
     for filepath, key in tqdm(zip(filepaths, keys), total=len(keys)):
         write_entry(txn, key, filepath)
     txn.commit()
@@ -146,21 +146,21 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
 
     # Get list of all data_types in the dataset.
     available_data_types = path.get_immediate_subdirectories(data_root)
-    print(available_data_types)
+    logging.info(available_data_types)
     required_data_types = cfg.data.data_types
     data_exts = cfg.data.extensions
 
     # Find filenames.
     assert set(required_data_types).issubset(set(available_data_types)), \
-        print(set(required_data_types) - set(available_data_types), 'missing')
+        logging.info(set(required_data_types) - set(available_data_types), 'missing')
 
     # Find extensions for each data type.
     extensions = {}
     for data_type, data_ext in zip(required_data_types, data_exts):
         extensions[data_type] = data_ext
-    print('Data file extensions:', extensions)
+    logging.info('Data file extensions:', extensions)
 
-    if paired:
+    if paired:  # False for MUNIT
         if input_list != '':
             all_filenames = get_all_filenames_from_list(input_list)
         else:
@@ -171,11 +171,11 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
                 search_dir = 'data_segmaps'
             else:
                 search_dir = required_data_types[0]
-            print('Searching in dir: %s' % search_dir)
+            logging.info('Searching in dir: %s' % search_dir)
             sequences = path.get_recursive_subdirectories(
                 os.path.join(data_root, search_dir),
                 extensions[search_dir])
-            print('Found %d sequences' % (len(sequences)))
+            logging.info('Found %d sequences' % (len(sequences)))
 
             # Get filenames in each sequence.
             all_filenames = {}
@@ -183,14 +183,14 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
                 folder = '%s/%s/%s/*.%s' % (
                     data_root, search_dir, sequence,
                     extensions[search_dir])
-                filenames = sorted(glob.glob(folder))
+                filenames = glob.glob(folder)[: cfg.test_data.test.num_images] # removed the sorted because the csv files are not sorted, they also use os.listdir
                 filenames = [
                     os.path.splitext(os.path.basename(filename))[0] for
                     filename in filenames]
                 all_filenames[sequence] = filenames
             total_filenames = [len(filenames)
                                for _, filenames in all_filenames.items()]
-            print('Found %d files' % (sum(total_filenames)))
+            logging.info('Found %d files' % (sum(total_filenames)))
     else:
         # Get sequences in each data type.
         all_filenames = {}
@@ -204,13 +204,13 @@ def create_metadata(data_root=None, cfg=None, paired=None, input_list=''):
             for sequence in sequences:
                 folder = '%s/%s/%s/*.%s' % (
                     data_root, data_type, sequence, extensions[data_type])
-                filenames = sorted(glob.glob(folder))
+                filenames = glob.glob(folder)[: cfg.test_data.test.num_images] # removed the sorted because the csv files are not sorted, they also use os.listdir
                 filenames = [
                     os.path.splitext(os.path.basename(filename))[0] for
                     filename in filenames]
                 all_filenames[data_type][sequence] = filenames
                 total_filenames += len(filenames)
-            print('Data type: %s, Found %d sequences, Found %d files' %
+            logging.info('Data type: %s, Found %d sequences, Found %d files' %
                   (data_type, len(sequences), total_filenames))
 
     return all_filenames, extensions

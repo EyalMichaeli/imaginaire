@@ -192,7 +192,7 @@ class Config(AttrDict):
             with open(filename, 'r') as f:
                 cfg_dict = yaml.load(f, Loader=loader)
         except EnvironmentError:
-            print('Please check the file with name of "%s"', filename)
+            logging.info('Please check the file with name of "%s"', filename)
         recursive_update(self, cfg_dict)
 
         # Put common opts in both gen and dis.
@@ -202,9 +202,9 @@ class Config(AttrDict):
             self.dis.common = self.common
 
         if verbose:
-            print(' imaginaire config '.center(80, '-'))
-            print(self.__repr__())
-            print(''.center(80, '-'))
+            logging.info(' imaginaire config '.center(80, '-'))
+            logging.info(self.__repr__())
+            logging.info(''.center(80, '-'))
 
 
 def rsetattr(obj, attr, val):
