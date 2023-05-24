@@ -52,8 +52,8 @@ def plot_images_grid_and_save(list_of_images: list, filename: str):
         raise ValueError('Image tensor dimension does not equal = 3.')
     if list_of_images[0].size(0) != 3:
         raise ValueError('Image has more than 3 channels.')
-    # plot the images, make sure each row has maximum of 2 images. For example if there are 5 images in list_of_images, there will be 3 rows.
-    nrow = min(3, len(list_of_images))
+    # plot the images in a grid
+    nrow = 5
     image_grid = torchvision.utils.make_grid(
         list_of_images, nrow=nrow, padding=0, normalize=False)
     torchvision.utils.save_image(image_grid, filename, nrow=nrow)

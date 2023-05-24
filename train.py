@@ -58,6 +58,9 @@ def init_logging(config_path, logdir):
     log_folder = os.path.join(logdir, log_folder_name)
     os.makedirs(log_folder, exist_ok=True)
 
+    cp_folder = os.path.join(log_folder, 'checkpoints')
+    os.makedirs(cp_folder, exist_ok=True)
+
     log_file = os.path.join(log_folder, 'log.log')
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
     fh = logging.FileHandler(log_file, mode='w')
@@ -67,31 +70,6 @@ def init_logging(config_path, logdir):
     logging.info('Log directory: {}'.format(log_folder))
     logging.info('Config file: {}'.format(config_path))
     return date_uid, log_folder
-
-# def init_logging(config_path, logdir):
-#     r"""Create log directory for storing checkpoints and output images.
-#     Args:
-#         config_path (str): Path to the configuration file.
-#         logdir (str): Log directory name
-#     Returns:
-#         str: Return log dir
-#     """
-#     config_file = os.path.basename(config_path)
-#     root_dir = 'logs'
-#     date_uid = get_date_uid()
-#     # example: logs/2019_0125_1047_58_spade_cocostuff
-#     log_folder_name = '_'.join([date_uid, os.path.splitext(config_file)[0]])
-#     os.makedirs(root_dir, exist_ok=True)
-#     log_folder = os.path.join(root_dir, log_folder_name)
-#     os.makedirs(log_folder, exist_ok=True)
-#     log_file = os.path.join(root_dir, log_folder_name, 'log.log')
-#     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
-#     fh = logging.FileHandler(log_file, mode='w')
-#     fh.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-#     logging.getLogger().addHandler(fh)
-#     if logdir is None:
-#         logdir = os.path.join(root_dir, log_folder_name)
-#     return date_uid, logdir
 
 
 def main():
@@ -107,7 +85,7 @@ def main():
     set_random_seed(args.seed, by_rank=True)
     cfg = Config(args.config)
     cfg.date_uid, cfg.logdir = date_uid, logdir
-    
+
     # try:
     #     from userlib.auto_resume import AutoResume
     #     AutoResume.init()
@@ -250,18 +228,20 @@ if __name__ == "__main__":
 """
 commands:
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-default_run --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-default_run.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-default_run --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-default_run.log &
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/cs2cs-style_recon_2_perceptual_1 --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-style_recon_2_perceptual_1.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=1 python train.py --logdir logs/cs2cs_style_recon_2_instead_of_1 --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs_style_recon_2_instead_of_1.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=1 python train.py --logdir logs/cs2cs_style_recon_2_instead_of_1 --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs_style_recon_2_instead_of_1.log &
 
 resume:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue_200k.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/ff --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue_200k.log &
 
 low LR config:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/fgg --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &
 
+# arch experiments:
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/cs2cs_make_complex_arch --config configs/projects/munit/cs2cs/ampO1_lower_LR_arch_experiments.yaml --single_gpu' 2>&1 | tee -a cs2cs_make_complex_arch.log &
 """
 
 

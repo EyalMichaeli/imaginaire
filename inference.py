@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument('--output_dir', required=True,
                         help='Location to save the image outputs')
     parser.add_argument('--logdir',
-                        help='Dir for saving logs and models.')
+                        help='Dir for saving logs and models.', default='inference_logs')
     parser.add_argument('--seed', type=int, default=0,
                         help='Random seed.')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -40,10 +40,20 @@ def parse_args():
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=0 python inference.py --single_gpu --save_raw_output --style_std 1.0 \
-    --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml \
-        --checkpoint logs/2023_0422_2242_44_ampO1_lower_LR/checkpoints/epoch_00005_iteration_000400000_checkpoint.pt \
-            --output_dir logs/2023_0422_2242_44_ampO1_lower_LR/inference_cp_400k_style_std_1.0_on_new_10k_matching_csv
+CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
+    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
+        --checkpoint logs/cs2cs-style_recon_2_perceptual_1/2023_0518_1805_39_ampO1_lower_LR/checkpoints/epoch_00041_iteration_000400000_checkpoint.pt \
+            --output_dir logs/cs2cs-style_recon_2_perceptual_1/2023_0518_1805_39_ampO1_lower_LR//inference_cp_400k_style_std_2.0
+
+CUDA_VISIBLE_DEVICES=1 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
+    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
+        --checkpoint logs/cs2cs_style_recon_2_instead_of_1/2023_0519_1215_35_ampO1_lower_LR/checkpoints/epoch_00039_iteration_000385000_checkpoint.pt \
+            --output_dir logs/cs2cs_style_recon_2_instead_of_1/2023_0519_1215_35_ampO1_lower_LR/inference_cp_385k_style_std_2.0
+
+CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
+    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
+        --checkpoint logs/cs2cs-default_run/2023_0519_1215_17_ampO1_lower_LR/checkpoints/epoch_00041_iteration_000400000_checkpoint.pt \
+            --output_dir logs/cs2cs-default_run/2023_0519_1215_17_ampO1_lower_LR/inference_cp_400k_style_std_2.0
 """
 
 def main():

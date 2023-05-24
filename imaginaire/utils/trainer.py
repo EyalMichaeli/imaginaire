@@ -10,6 +10,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 from torch.optim import SGD, Adam, RMSprop, lr_scheduler
+from torch.optim import AdamW
 
 from imaginaire.optimizers import Fromage, Madam
 from imaginaire.utils.distributed import get_rank, get_world_size
@@ -289,7 +290,7 @@ def get_optimizer(cfg_opt, net):
 
 
 def get_optimizer_for_params(cfg_opt, params):
-    r"""Return the scheduler object.
+    r"""Return the optimizer object.
 
     Args:
         cfg_opt (obj): Config for the specific optimization module (gen/dis).
@@ -314,6 +315,11 @@ def get_optimizer_for_params(cfg_opt, params):
             opt = Adam(params,
                        lr=cfg_opt.lr, eps=cfg_opt.eps,
                        betas=(cfg_opt.adam_beta1, cfg_opt.adam_beta2))
+    elif cfg_opt.type == 'adamw':
+        opt = AdamW(params,
+                    lr=cfg_opt.lr, eps=cfg_opt.eps,
+                    betas=(cfg_opt.adam_beta1, cfg_opt.adam_beta2))
+    
 
     elif cfg_opt.type == 'madam':
         g_bound = getattr(cfg_opt, 'g_bound', None)
