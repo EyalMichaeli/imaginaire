@@ -3,6 +3,8 @@
 # This work is made available under the Nvidia Source Code License-NC.
 # To view a copy of this license, check out LICENSE.md
 import argparse
+import os
+import glob
 
 from imaginaire.config import Config
 from imaginaire.utils.cudnn import init_cudnn
@@ -19,14 +21,14 @@ import logging
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Training')
-    parser.add_argument('--config', required=True,
+    parser.add_argument('--config', required=False, 
                         help='Path to the training config file.')
     parser.add_argument('--checkpoint', default='',
                         help='Checkpoint path.')
-    parser.add_argument('--output_dir', required=True,
-                        help='Location to save the image outputs')
-    parser.add_argument('--logdir',
-                        help='Dir for saving logs and models.', default='inference_logs')
+    parser.add_argument('--output_dir', required=False,
+                        help='Location to save the image outputs, default is in the logdir given by --logdir.')
+    parser.add_argument('--logdir', required=True,
+                        help='Location to save the log files, default is logs.')
     parser.add_argument('--seed', type=int, default=0,
                         help='Random seed.')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -40,28 +42,45 @@ def parse_args():
     return args
 
 """ 
-CUDA_VISIBLE_DEVICES=2 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
-    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
-        --checkpoint logs/cs2cs-style_recon_2_perceptual_1/2023_0518_1805_39_ampO1_lower_LR/checkpoints/epoch_00041_iteration_000400000_checkpoint.pt \
-            --output_dir logs/cs2cs-style_recon_2_perceptual_1/2023_0518_1805_39_ampO1_lower_LR//inference_cp_400k_style_std_2.0
 
-CUDA_VISIBLE_DEVICES=1 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
-    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
-        --checkpoint logs/cs2cs_style_recon_2_instead_of_1/2023_0519_1215_35_ampO1_lower_LR/checkpoints/epoch_00039_iteration_000385000_checkpoint.pt \
-            --output_dir logs/cs2cs_style_recon_2_instead_of_1/2023_0519_1215_35_ampO1_lower_LR/inference_cp_385k_style_std_2.0
+CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 1.0 \
+    --logdir logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR \
+        --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR/checkpoints/epoch_00030_iteration_000305000_checkpoint.pt \
+        
 
 CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 2.0 \
-    --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml \
-        --checkpoint logs/cs2cs-default_run/2023_0519_1215_17_ampO1_lower_LR/checkpoints/epoch_00041_iteration_000400000_checkpoint.pt \
-            --output_dir logs/cs2cs-default_run/2023_0519_1215_17_ampO1_lower_LR/inference_cp_400k_style_std_2.0
+    --logdir logs/cs2cs_make_complex_arch/2023_0524_2217_59_ampO1_lower_LR_arch_experiments \
+        --checkpoint logs/cs2cs_make_complex_arch/2023_0524_2217_59_ampO1_lower_LR_arch_experiments/checkpoints/epoch_00040_iteration_000400000_checkpoint.pt \
+        
+
 """
 
 def main():
     args = parse_args()
     set_affinity(args.local_rank)
     set_random_seed(args.seed, by_rank=True)
+
+    # get config from logdir
+    if args.config is None:
+        # find the config, it should be in the logdir, and should be the only .yaml file
+        configs = glob.glob(os.path.join(args.logdir, '*.yaml'))
+        assert len(configs) == 1, f'Found {len(configs)} configs in {args.logdir}, expected 1'
+        args.config = configs[0]
+        print(f'Using config {args.config}')
+    
     cfg = Config(args.config)
     imaginaire.config.DEBUG = args.debug
+
+    # if output_dir is not specified, use logdir
+    # the folder name will include the epoch, iteration, and style_std
+    if args.output_dir is None:
+        # first get iteration from cp name, example name: epoch_00040_iteration_000400000_checkpoint
+        cp_name = os.path.basename(args.checkpoint)
+        iteration = cp_name.split('_')[3]
+        args.output_dir = os.path.join(args.logdir, 'inference', f'inference_cp_{iteration}_style_std_{args.style_std}')
+        # create the output dir
+        os.makedirs(args.output_dir, exist_ok=True)
+        print(f'Using output_dir {args.output_dir}')
 
     if not hasattr(cfg, 'inference_args'):
         cfg.inference_args = None
@@ -76,8 +95,8 @@ def main():
     if args.num_workers is not None:
         cfg.data.num_workers = args.num_workers
 
-    # Create log directory for storing training results.
-    cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
+    # # Create log directory for storing training results.
+    # cfg.date_uid, cfg.logdir = init_logging(args.config, args.logdir)
 
     # Initialize cudnn.
     init_cudnn(cfg.cudnn.deterministic, cfg.cudnn.benchmark)

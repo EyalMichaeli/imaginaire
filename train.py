@@ -240,8 +240,13 @@ nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/ff --resume 1 
 low LR config:
 nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/fgg --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &
 
-# arch experiments:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/cs2cs_make_complex_arch --config configs/projects/munit/cs2cs/ampO1_lower_LR_arch_experiments.yaml --single_gpu' 2>&1 | tee -a cs2cs_make_complex_arch.log &
+# resume experiments:
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/cs2cs_make_complex_arch/2023_0522_2224_46_ampO1_lower_LR_arch_experiments/checkpoints/epoch_00015_iteration_000150000_checkpoint.pt --logdir logs/cs2cs_make_complex_arch --config configs/projects/munit/cs2cs/ampO1_lower_LR_arch_experiments.yaml --single_gpu' 2>&1 | tee -a cs2cs_make_complex_arch.log &
+
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR/checkpoints/epoch_00030_iteration_000305000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
+
+nohup sh -c 'CUDA_VISIBLE_DEVICES=0 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr/2023_0522_0936_53_ampO1_lower_LR/checkpoints/epoch_00022_iteration_000220000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
+
 """
 
 

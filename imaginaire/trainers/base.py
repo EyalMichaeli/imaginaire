@@ -4,6 +4,7 @@
 # To view a copy of this license, check out LICENSE.md
 import json
 import os
+from pathlib import Path
 import time
 import logging
 
@@ -443,10 +444,10 @@ class BaseTrainer(object):
             image_path = os.path.join(self.cfg.logdir, 'images', 'current.jpg')
             self.save_image(image_path, data)  
 
-            # I changed to save also with a nname to not be run over
-            self.save_image(self._get_save_path('images', 'jpg', small_interval=True), data)  
+            # I changed to save also with a name to not be run over (cancelled the small interval save at some point)
+            # self.save_image(self._get_save_path('images', 'jpg', small_interval=True), data)  
             # small interval saves it in a diff folder, with smaller variations between the outputs
-
+ 
      
         self._write_tensorboard()
         if current_iteration % self.cfg.logging_iter == 0:
@@ -1001,6 +1002,8 @@ def _save_checkpoint(cfg,
     """
     latest_checkpoint_path = 'epoch_{:05}_iteration_{:09}_checkpoint.pt'.format(
         current_epoch, current_iteration)
+    # create dir if needed
+    Path(os.path.join(cfg.logdir, "checkpoints")).mkdir(parents=True, exist_ok=True)
     save_path = os.path.join(cfg.logdir, "checkpoints", latest_checkpoint_path)
     torch.save(
         {

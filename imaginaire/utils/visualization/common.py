@@ -53,7 +53,12 @@ def plot_images_grid_and_save(list_of_images: list, filename: str):
     if list_of_images[0].size(0) != 3:
         raise ValueError('Image has more than 3 channels.')
     # plot the images in a grid
-    nrow = 5
+    # if list of images is <= 6, plot them in 2 rows, 3 columns
+
+    if len(list_of_images) <= 6:
+        nrow = 3
+    else:
+        nrow = 5
     image_grid = torchvision.utils.make_grid(
         list_of_images, nrow=nrow, padding=0, normalize=False)
     torchvision.utils.save_image(image_grid, filename, nrow=nrow)
