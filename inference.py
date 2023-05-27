@@ -15,7 +15,6 @@ from imaginaire.utils.io import get_checkpoint as get_checkpoint
 from imaginaire.utils.trainer import \
     (get_model_optimizer_and_scheduler, get_trainer, set_random_seed)
 import imaginaire.config
-from train import init_logging
 import logging
 
 
@@ -43,9 +42,9 @@ def parse_args():
 
 """ 
 
-CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 1.0 \
-    --logdir logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR \
-        --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR/checkpoints/epoch_00030_iteration_000305000_checkpoint.pt \
+CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 0.65 \
+    --logdir logs/cs2cs-higher_gen_lr_lower_res/2023_0525_2220_42_ampO1_lower_LR_really_lower_res \
+        --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0525_2220_42_ampO1_lower_LR_really_lower_res/checkpoints/epoch_00039_iteration_000400000_checkpoint.pt \
         
 
 CUDA_VISIBLE_DEVICES=3 python inference.py --single_gpu --save_raw_output --style_std 2.0 \

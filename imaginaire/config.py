@@ -8,6 +8,7 @@ import collections
 import functools
 import os
 import re
+import logging
 
 import yaml
 from imaginaire.utils.distributed import master_only_print as print

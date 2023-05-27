@@ -23,6 +23,9 @@ from imaginaire.utils.misc import slice_tensor
 # from imaginaire.utils.logging import make_logging_dir
 from imaginaire.utils.trainer import (get_model_optimizer_and_scheduler,
                                       get_trainer, set_random_seed)
+from imaginaire.trainers.munit import Trainer
+
+
 
 
 sys.path.append(os.environ.get('SUBMIT_SCRIPTS', '.'))
@@ -123,12 +126,12 @@ def main():
     # print the LR
     for param_group in opt_G.param_groups:
         logging.info(f"LR of G: {param_group['lr']}")
-    trainer = get_trainer(cfg, net_G, net_D,
+    trainer: Trainer = get_trainer(cfg, net_G, net_D,
                           opt_G, opt_D,
                           sch_G, sch_D,
                           train_data_loader, val_data_loader)
     resumed, current_epoch, current_iteration = trainer.load_checkpoint(cfg, args.checkpoint, args.resume)
-
+    
     # Initialize Wandb.
     if is_master():
         if args.wandb_id is not None:
@@ -226,26 +229,27 @@ if __name__ == "__main__":
     main()
 
 """
+
 commands:
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-default_run --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-default_run.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-default_run --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a nohup_outputs/cs2cs-default_run.log &
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
-
-nohup sh -c 'CUDA_VISIBLE_DEVICES=1 python train.py --logdir logs/cs2cs_style_recon_2_instead_of_1 --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs_style_recon_2_instead_of_1.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs//cs2cs-higher_gen_lr_lower_res.log &
 
 resume:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/ff --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config /mnt/raid/home/eyal_michaeli/git/imaginaire/configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0_continue_200k.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/cs2cs_lower_res_style_recon_2_perceptual_1 --resume 1 --checkpoint logs/cs2cs_lower_res_style_recon_2_perceptual_1/2023_0526_1515_00_ampO1_lower_LR_lower_res_perceptual_2/checkpoints/epoch_00015_iteration_000150000_checkpoint.pt --config configs/projects/munit/cs2cs/ampO1_lower_LR_lower_res_perceptual_2.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs/cs2cs_lower_res_style_recon_2_perceptual_1.log &
+
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/ff --resume 1 --checkpoint logs/2023_0413_2053_12_ampO1_lower_LR/checkpoints/epoch_00002_iteration_000200000_checkpoint.pt --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs/munit_bdd2bdd_v0_continue_200k.log &
 
 low LR config:
-nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/fgg --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/munit_bdd2bdd_v0.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --logdir logs/fgg --config configs/projects/munit/bdd10k2bdd10k/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs/munit_bdd2bdd_v0.log &
 
 # resume experiments:
 nohup sh -c 'CUDA_VISIBLE_DEVICES=3 python train.py --resume 1 --checkpoint logs/cs2cs_make_complex_arch/2023_0522_2224_46_ampO1_lower_LR_arch_experiments/checkpoints/epoch_00015_iteration_000150000_checkpoint.pt --logdir logs/cs2cs_make_complex_arch --config configs/projects/munit/cs2cs/ampO1_lower_LR_arch_experiments.yaml --single_gpu' 2>&1 | tee -a cs2cs_make_complex_arch.log &
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR/checkpoints/epoch_00030_iteration_000305000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=2 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr_lower_res/2023_0524_2224_26_ampO1_lower_LR/checkpoints/epoch_00030_iteration_000305000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs/cs2cs-higher_gen_lr_lower_res.log &
 
-nohup sh -c 'CUDA_VISIBLE_DEVICES=0 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr/2023_0522_0936_53_ampO1_lower_LR/checkpoints/epoch_00022_iteration_000220000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a /mnt/raid/home/eyal_michaeli/git/imaginaire/cs2cs-higher_gen_lr_lower_res.log &
+nohup sh -c 'CUDA_VISIBLE_DEVICES=0 python train.py --resume 1 --checkpoint logs/cs2cs-higher_gen_lr/2023_0522_0936_53_ampO1_lower_LR/checkpoints/epoch_00022_iteration_000220000_checkpoint.pt --logdir logs/cs2cs-higher_gen_lr_lower_res --config configs/projects/munit/cs2cs/ampO1_lower_LR.yaml --single_gpu' 2>&1 | tee -a  nohup_outputs/cs2cs-higher_gen_lr_lower_res.log &
 
 """
 
@@ -259,4 +263,5 @@ in order to install env, i:
 2. installed req.txt
 3. installed third parties using (sh scripts/install_with_conda.sh  - I commented out the installing env part in the script)
     IMPORTANT: ONLY did that after running export CUDA_HOME=/usr/local/cuda-11.1 to make sure that one is visible.
+
 """

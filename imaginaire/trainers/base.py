@@ -22,6 +22,7 @@ from imaginaire.utils.misc import to_cuda, to_device, requires_grad, to_channels
 from imaginaire.utils.model_average import (calibrate_batch_norm_momentum,
                                             reset_batch_norm)
 from imaginaire.utils.visualization import tensor2pilimage, plot_images_grid_and_save
+from imaginaire.config import Config
 
 
 """
@@ -58,7 +59,7 @@ class BaseTrainer(object):
         logging.info('Setup trainer.')
 
         # Initialize models and data loaders.
-        self.cfg = cfg
+        self.cfg: Config = cfg
         self.net_G = net_G
         if cfg.trainer.model_average_config.enabled:
             # Two wrappers (DDP + model average).
@@ -309,7 +310,7 @@ class BaseTrainer(object):
                             self.sch_D.last_epoch = current_iteration
                         else:
                             self.sch_D.last_epoch = current_epoch
-                    logging.info('Load from: {}'.format(checkpoint_path))
+
                 else:
                     logging.info('Load network weights only.')
         else:
@@ -328,7 +329,12 @@ class BaseTrainer(object):
                 else:
                     raise ValueError('Checkpoint cannot be loaded.')
 
-        logging.info('Done with loading the checkpoint.')
+        logging.info(f"Initalized gen optimizer with lr {self.opt_G.param_groups[0]['lr']}")
+        logging.info(f"Initalized dis optimizer with lr {self.opt_D.param_groups[0]['lr']}")
+        logging.info(f"Initalized gen scheduler with params: {self.sch_G.__dict__}")
+        logging.info(f"Initalized dis scheduler with params: {self.sch_D.__dict__}")
+
+        logging.info('finished initalizing weights, optimizer and scheduler')
         return resume, current_epoch, current_iteration
 
     def start_of_epoch(self, current_epoch):
