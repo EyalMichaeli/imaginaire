@@ -26,7 +26,7 @@ trainer:
     perceptual_mode: vgg19
     perceptual_layers: 'relu_4_1'
     loss_weight:
-        gan: 1
+        gan: 1.2
         image_recon: 10
         content_recon: 1
         style_recon: 2
@@ -39,14 +39,14 @@ trainer:
         gain: 1
 gen_opt:
     type: adam
-    lr: 0.00005  # = 0.0001 (original LR that was used with 8 GPUS, i.e batch size = 8) / 8  = 0.0001 / 8 = 0.0000125
+    lr: 0.0001  # = 0.0001 (original LR that was used with 8 GPUS, i.e batch size = 8) / 8  = 0.0001 / 8 = 0.0000125
     adam_beta1: 0.5
     adam_beta2: 0.999
     lr_policy:
         type: constant
 dis_opt:
     type: adam
-    lr: 0.00005 # = 0.0004 (original LR that was used with 8 GPUS, i.e batch size = 8) / 8 = 0.0004 / 8 = 0.00005
+    lr: 0.0001 # = 0.0004 (original LR that was used with 8 GPUS, i.e batch size = 8) / 8 = 0.0004 / 8 = 0.00005
     adam_beta1: 0.5
     adam_beta2: 0.999
     lr_policy:
@@ -112,7 +112,7 @@ data:
             # Horizontal flip?
             horizontal_flip: True
             # Crop size.
-            random_crop_h_w: 256, 512
+            random_crop_h_w: 256, 256
 
     # Val dataset details.
     val:
